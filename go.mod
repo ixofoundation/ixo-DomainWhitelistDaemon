@@ -9,6 +9,7 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/compress v1.15.6 // indirect
 	github.com/mattn/go-sqlite3 v1.14.13 // indirect
+	github.com/nuts-foundation/go-did v0.3.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.37.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
