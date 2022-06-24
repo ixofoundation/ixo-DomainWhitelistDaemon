@@ -3,8 +3,10 @@ package main
 import (
 	"ixowhitelistdaemon/database"
 	whitelist_domain "ixowhitelistdaemon/whitelist"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 )
 
 func status(c *fiber.Ctx) error {
@@ -20,6 +22,10 @@ func setupRoutes(app *fiber.App) {
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Some error occured. Err: %s", err)
+	}
 	app := fiber.New()
 	dbErr := database.InitDatabase()
 
