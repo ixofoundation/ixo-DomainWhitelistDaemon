@@ -13,9 +13,9 @@ import (
 
 type WhitelistDomain struct {
 	gorm.Model
-	Name          string `json:"name"`
-	Url           string `json:"url";unique`
-	hashsignature string `json:"hashsignature"`
+	Name string `json:"name"`
+	Url  string `json:"url";unique`
+	Hash string `json:"hash"`
 }
 
 func InitDatabase() error {
@@ -29,11 +29,17 @@ func InitDatabase() error {
 	return nil
 }
 
-func Sign(msg, key []byte) string {
-	mac := hmac.New(sha256.New, key)
-	mac.Write(msg)
+func Sign(msg, key []byte) <-chan string {
+	r := make(chan string)
 
-	return hex.EncodeToString(mac.Sum(nil))
+	go func() {
+		mac := hmac.New(sha256.New, key)
+		mac.Write(msg)
+		var hexvalue = hex.EncodeToString(mac.Sum(nil))
+		r <- hexvalue
+	}()
+
+	return r
 }
 
 func Verify(msg, key []byte, hash string) (bool, error) {
@@ -66,16 +72,16 @@ func CreateWhitelistedDomain(name string, url string) (WhitelistDomain, error) {
 	msg := []byte(url)
 	key := []byte(os.Getenv("SECRETKEY"))
 
-	hash := Sign(msg, key)
+	hash := <-Sign(msg, key)
 	fmt.Println("HASH:", hash)
 
-	var newDomain = WhitelistDomain{Name: name, Url: url, hashsignature: hash}
+	var newDomain = WhitelistDomain{Name: name, Url: url, Hash: hash}
 
 	db, err := gorm.Open(sqlite.Open("whitelist.db"), &gorm.Config{})
 	if err != nil {
 		return newDomain, err
 	}
-	db.Create(&WhitelistDomain{Name: name, Url: url})
+	db.Create(&WhitelistDomain{Name: name, Hash: hash, Url: url})
 
 	return newDomain, nil
 }
