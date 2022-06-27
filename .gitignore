@@ -1,2 +1,5 @@
 /.vscode
 /whitelist.db
+.DS_Store
+private.txt
+public.txt
