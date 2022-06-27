@@ -102,6 +102,17 @@ func ParseRsaPublicKeyFromPemStr(pubPEM string) (*rsa.PublicKey, error) {
 	return nil, errors.New("Key type is not RSA")
 }
 
+func doesFileExist(fileName string) bool {
+	_, error := os.Stat(fileName)
+
+	// check if error is "file not exists"
+	if os.IsNotExist(error) {
+		return false
+	} else {
+		return true
+	}
+}
+
 func Sign(msg, secret []byte) <-chan string {
 	r := make(chan string)
 
@@ -134,23 +145,48 @@ func Sign(msg, secret []byte) <-chan string {
 			panic(err)
 
 		}
-		fmt.Println(string(priv_pem))
-		fmt.Println(string(pub_pem))
-		priv_data := []byte(priv_pem)
-		pub_data := []byte(pub_pem)
-		ioerr := ioutil.WriteFile("private.txt", priv_data, 777)
+		// fmt.Println(string(priv_pem))
+		// fmt.Println(string(pub_pem))
+		filecheck := doesFileExist("private.txt")
 
-		if ioerr != nil {
-			log.Fatal(err)
+		if !filecheck {
+			fmt.Println("File Not Found")
+			priv_data := []byte(priv_pem)
+			pub_data := []byte(pub_pem)
+			ioerr := ioutil.WriteFile("private.txt", priv_data, 777)
+
+			if ioerr != nil {
+				log.Fatal(err)
+			}
+
+			ioerr2 := ioutil.WriteFile("public.txt", pub_data, 777)
+
+			if ioerr2 != nil {
+				log.Fatal(err)
+			}
+		}
+		if filecheck {
+			fmt.Println("File Found")
+			b, err := ioutil.ReadFile("private.txt") // just pass the file name
+			if err != nil {
+				fmt.Print(err)
+			}
+
+			fmt.Println(b) // print the content as 'bytes'
+
+			str := string(b) // convert content to a 'string'
+			fmt.Println(str)
+			// priv_parsed, _ := ParseRsaPrivateKeyFromPemStr(str)
+
+			if priv_pem != str {
+				fmt.Println("Failure: Export and Import did not result in same Keys")
+			} else {
+				fmt.Println("Success")
+			}
+
 		}
 
-		ioerr2 := ioutil.WriteFile("public.txt", pub_data, 777)
-
-		if ioerr2 != nil {
-			log.Fatal(err)
-		}
-
-		fmt.Println(hex.EncodeToString(signature))
+		// fmt.Println(hex.EncodeToString(signature))
 		r <- hex.EncodeToString(signature)
 
 	}()
