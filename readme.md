@@ -1,6 +1,6 @@
 # IXOWhitelistDaemon
 
-IXOWhitelistDaemon is a simple RSA PKSS based golang application to serve  verifiable domain whitelists.
+IXOWhitelistDaemon is a simple RSA PSS based golang application to serve  verifiable domain whitelists.
 
 ## Installation
 
