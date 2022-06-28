@@ -5,9 +5,12 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"fmt"
+	"io/ioutil"
 	"ixowhitelistdaemon/database"
 	whitelist_domain "ixowhitelistdaemon/whitelist"
 	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
@@ -56,6 +59,17 @@ func ExportRsaPublicKeyAsPemStr(pubkey *rsa.PublicKey) (string, error) {
 	return string(pubkey_pem), nil
 }
 
+func doesFileExist(fileName string) bool {
+	_, error := os.Stat(fileName)
+
+	// check if error is "file not exists"
+	if os.IsNotExist(error) {
+		return false
+	} else {
+		return true
+	}
+}
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -66,26 +80,30 @@ func main() {
 
 	//Setup server RSA Keys
 
-	// priv, pub := GenerateRsaKeyPair()
+	filecheck := doesFileExist("private.txt")
 
-	// Export the keys to pem string
-	// priv_pem := ExportRsaPrivateKeyAsPemStr(priv)
-	// pub_pem, _ := ExportRsaPublicKeyAsPemStr(pub)
+	//Check for local key
+	if !filecheck {
+		fmt.Println("File Not Found")
+		priv, pub := GenerateRsaKeyPair()
 
-	// priv_data := []byte(priv_pem)
-	// pub_data := []byte(pub_pem)
+		// Export the keys to pem string
+		priv_pem := ExportRsaPrivateKeyAsPemStr(priv)
+		pub_pem, _ := ExportRsaPublicKeyAsPemStr(pub)
+		priv_data := []byte(priv_pem)
+		pub_data := []byte(pub_pem)
+		ioerr := ioutil.WriteFile("private.txt", priv_data, 777)
 
-	// ioerr := ioutil.WriteFile("private.txt", priv_data, 0)
+		if ioerr != nil {
+			log.Fatal(err)
+		}
 
-	// if ioerr != nil {
-	// 	log.Fatal(err)
-	// }
+		ioerr2 := ioutil.WriteFile("public.txt", pub_data, 777)
 
-	// ioerr2 := ioutil.WriteFile("public.txt", pub_data, 0)
-
-	// if ioerr2 != nil {
-	// 	log.Fatal(err)
-	// }
+		if ioerr2 != nil {
+			log.Fatal(err)
+		}
+	}
 
 	if dbErr != nil {
 		panic(dbErr)

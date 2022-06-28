@@ -1,11 +1,11 @@
 # IXOWhitelistDaemon
 
-IXOWhitelistDaemon is a simple golang application to serve domain whitelists.
+IXOWhitelistDaemon is a simple RSA PKSS based golang application to serve  verifiable domain whitelists.
 
 ## Installation
 
 Requires a local golang development setup then make server can be used to start a local copy.
-The local .env file needs to be set with a local server secret to be shared with the partner organization for domain verification purposes.
+Keys are generated at runtime unless a private.txt and public.txt is present in the local binary directory.
 
 
 

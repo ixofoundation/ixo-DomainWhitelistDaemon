@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 
 	"crypto/rand"
@@ -113,81 +112,47 @@ func doesFileExist(fileName string) bool {
 	}
 }
 
-func Sign(msg, secret []byte) <-chan string {
+func Sign(domain []byte) <-chan string {
 	r := make(chan string)
 
 	go func() {
-		priv, pub := GenerateRsaKeyPair()
 
-		// Export the keys to pem string
-		priv_pem := ExportRsaPrivateKeyAsPemStr(priv)
-		pub_pem, _ := ExportRsaPublicKeyAsPemStr(pub)
-
-		// Import the keys from pem string
-		// priv_parsed, _ := ParseRsaPrivateKeyFromPemStr(priv_pem)
-		// pub_parsed, _ := ParseRsaPublicKeyFromPemStr(pub_pem)
-
-		// Before signing, we need to hash our message
-		// The hash is what we actually sign
-		msgHash := sha256.New()
-		_, err := msgHash.Write(msg)
-		if err != nil {
-			panic(err)
-		}
-		msgHashSum := msgHash.Sum(nil)
-
-		// In order to generate the signature, we provide a random number generator,
-		// our private key, the hashing algorithm that we used, and the hash sum
-		// of our message
-
-		signature, err := rsa.SignPSS(rand.Reader, priv, crypto.SHA256, msgHashSum, nil)
-		if err != nil {
-			panic(err)
-
-		}
-		// fmt.Println(string(priv_pem))
-		// fmt.Println(string(pub_pem))
 		filecheck := doesFileExist("private.txt")
-
-		if !filecheck {
-			fmt.Println("File Not Found")
-			priv_data := []byte(priv_pem)
-			pub_data := []byte(pub_pem)
-			ioerr := ioutil.WriteFile("private.txt", priv_data, 777)
-
-			if ioerr != nil {
-				log.Fatal(err)
-			}
-
-			ioerr2 := ioutil.WriteFile("public.txt", pub_data, 777)
-
-			if ioerr2 != nil {
-				log.Fatal(err)
-			}
-		}
 		if filecheck {
 			fmt.Println("File Found")
-			b, err := ioutil.ReadFile("private.txt") // just pass the file name
+			b, err := ioutil.ReadFile("private.txt")
 			if err != nil {
 				fmt.Print(err)
 			}
 
-			fmt.Println(b) // print the content as 'bytes'
-
 			str := string(b) // convert content to a 'string'
 			fmt.Println(str)
-			// priv_parsed, _ := ParseRsaPrivateKeyFromPemStr(str)
+			priv_parsed, _ := ParseRsaPrivateKeyFromPemStr(str)
 
-			if priv_pem != str {
-				fmt.Println("Failure: Export and Import did not result in same Keys")
-			} else {
-				fmt.Println("Success")
+			msgHash := sha256.New()
+			_, hasherr := msgHash.Write(domain)
+			if hasherr != nil {
+				panic(err)
+			}
+			msgHashSum := msgHash.Sum(nil)
+
+			// In order to generate the signature, we provide a random number generator,
+			// our private key, the hashing algorithm that we used, and the hash sum
+			// of our message
+
+			signature, err := rsa.SignPSS(rand.Reader, priv_parsed, crypto.SHA256, msgHashSum, nil)
+			if err != nil {
+				panic(err)
+
 			}
 
+			r <- hex.EncodeToString(signature)
 		}
+		if !filecheck {
 
-		// fmt.Println(hex.EncodeToString(signature))
-		r <- hex.EncodeToString(signature)
+			panic("Key not found for signing.")
+
+		}
 
 	}()
 
@@ -210,10 +175,8 @@ func GetAllWhitelisteDomains() ([]WhitelistDomain, error) {
 func CreateWhitelistedDomain(name string, url string) (WhitelistDomain, error) {
 
 	msg := []byte(url)
-	key := []byte(os.Getenv("SECRETKEY"))
 
-	hash := <-Sign(msg, key)
-	fmt.Println("HASH:", hash)
+	hash := <-Sign(msg)
 
 	var newDomain = WhitelistDomain{Name: name, Url: url, Signature: hash}
 
