@@ -117,10 +117,10 @@ func Sign(domain []byte) <-chan string {
 
 	go func() {
 
-		filecheck := doesFileExist("private.txt")
+		filecheck := doesFileExist("private.key")
 		if filecheck {
 			fmt.Println("File Found")
-			b, err := ioutil.ReadFile("private.txt")
+			b, err := ioutil.ReadFile("private.key")
 			if err != nil {
 				fmt.Print(err)
 			}

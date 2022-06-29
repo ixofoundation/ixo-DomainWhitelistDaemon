@@ -5,7 +5,7 @@ IXOWhitelistDaemon is a simple RSA PSS based golang application to serve  verifi
 ## Installation
 
 Requires a local golang development setup then make server can be used to start a local copy.
-Keys are generated at runtime unless a private.txt and public.txt is present in the local binary directory.
+Keys are generated at runtime unless a private.key and public.key is present in the local binary directory.
 
 
 

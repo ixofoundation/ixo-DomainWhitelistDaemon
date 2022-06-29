@@ -80,7 +80,7 @@ func main() {
 
 	//Setup server RSA Keys
 
-	filecheck := doesFileExist("private.txt")
+	filecheck := doesFileExist("private.key")
 
 	//Check for local key
 	if !filecheck {
@@ -92,13 +92,13 @@ func main() {
 		pub_pem, _ := ExportRsaPublicKeyAsPemStr(pub)
 		priv_data := []byte(priv_pem)
 		pub_data := []byte(pub_pem)
-		ioerr := ioutil.WriteFile("private.txt", priv_data, 777)
+		ioerr := ioutil.WriteFile("private.key", priv_data, 777)
 
 		if ioerr != nil {
 			log.Fatal(err)
 		}
 
-		ioerr2 := ioutil.WriteFile("public.txt", pub_data, 777)
+		ioerr2 := ioutil.WriteFile("public.key", pub_data, 777)
 
 		if ioerr2 != nil {
 			log.Fatal(err)
