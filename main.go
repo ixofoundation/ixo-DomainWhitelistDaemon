@@ -13,7 +13,6 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
 )
 
 func status(c *fiber.Ctx) error {
@@ -71,10 +70,7 @@ func doesFileExist(fileName string) bool {
 }
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Some error occured. Err: %s", err)
-	}
+
 	app := fiber.New()
 	dbErr := database.InitDatabase()
 
@@ -95,13 +91,13 @@ func main() {
 		ioerr := ioutil.WriteFile("private.key", priv_data, 777)
 
 		if ioerr != nil {
-			log.Fatal(err)
+			log.Fatal(ioerr)
 		}
 
 		ioerr2 := ioutil.WriteFile("public.key", pub_data, 777)
 
 		if ioerr2 != nil {
-			log.Fatal(err)
+			log.Fatal(ioerr2)
 		}
 	}
 
